@@ -33,13 +33,19 @@ class Pipes:
         self.ctts = None
         self.stt = None
         self.embedder = None
-        if self.current_llm.lower() != "none":
+        if (
+            self.current_llm.lower() != "none"
+            and getenv("LLM_ENABLED").lower() == "true"
+        ):
             logging.info(f"[LLM] {self.current_llm} model loading. Please wait...")
             self.llm = LLM(model=self.current_llm)
-            logging.info(f"[LLM] {self.current_llm} model loaded successfully.")
-        if getenv("EMBEDDING_ENABLED").lower() == "true":
+            if getenv("STT_ENABLED").lower() == "true":
+        if (
+            getenv("EMBEDDING_ENABLED").lower() == "true"
+            and getenv("LLM_ENABLED").lower() == "true"
+        ):
             self.embedder = Embedding()
-        if self.current_vlm != "":
+        if getenv("VISION_ENABLED").lower() == "true":
             logging.info(f"[VLM] {self.current_vlm} model loading. Please wait...")
             try:
                 self.vlm = VLM(model=self.current_vlm)
@@ -48,11 +54,17 @@ class Pipes:
                 self.vlm = None
             if self.vlm is not None:
                 logging.info(f"[ezlocalai] Vision is enabled with {self.current_vlm}.")
-        if getenv("TTS_ENABLED").lower() == "true":
+        if (
+            getenv("TTS_ENABLED").lower() == "true"
+            and getenv("TTS_ENABLED").lower() == "true"
+        ):
             logging.info(f"[CTTS] xttsv2_2.0.2 model loading. Please wait...")
             self.ctts = CTTS()
             logging.info(f"[CTTS] xttsv2_2.0.2 model loaded successfully.")
-        if getenv("STT_ENABLED").lower() == "true":
+        if (
+            getenv("STT_ENABLED").lower() == "true"
+            and getenv("STT_ENABLED").lower() == "true"
+        ):
             self.current_stt = getenv("WHISPER_MODEL")
             logging.info(f"[STT] {self.current_stt} model loading. Please wait...")
             self.stt = STT(model=self.current_stt)
@@ -70,7 +82,7 @@ class Pipes:
             self.local_uri = public_url.public_url
         else:
             self.local_uri = getenv("EZLOCALAI_URL")
-        self.img_enabled = getenv("IMG_ENABLED").lower() == "true"
+        if getenv("TTS_ENABLED").lower() == "true":
         self.img = None
         if img_import_success:
             logging.info(f"[IMG] Image generation is enabled.")
@@ -219,7 +231,7 @@ class Pipes:
             data["temperature"] = 0.5
         if "top_p" not in data:
             data["top_p"] = 0.9
-        if self.img_enabled and img_import_success and self.img:
+        if (self.img_enabled and img_import_success):
             user_message = (
                 data["messages"][-1]["content"]
                 if completion_type == "chat"
